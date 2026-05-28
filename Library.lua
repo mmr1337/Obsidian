@@ -3872,6 +3872,11 @@ do
             Button.Text = Text
             Button.Base.Text = Text
         end
+        
+        function Button:Destroy()
+            Holder:Destroy()
+      	 Groupbox:Resize()
+        end
 
         if typeof(Button.Tooltip) == "string" or typeof(Button.DisabledTooltip) == "string" then
             Button.TooltipTable = Library:AddTooltip(Button.Tooltip, Button.DisabledTooltip, Button.Base)
@@ -4071,6 +4076,11 @@ do
         function Toggle:SetText(Text: string)
             Toggle.Text = Text
             Label.Text = Text
+        end
+        
+        function Toggle:Destroy()
+            Button:Destroy()
+            Groupbox:Resize()
         end
 
         Button.MouseButton1Click:Connect(function()
@@ -4483,6 +4493,11 @@ do
         function Input:SetText(Text: string)
             Input.Text = Text
             Label.Text = Text
+        end
+        
+        function Input:Destroy()
+            Holder:Destroy()
+      	 Groupbox:Resize()
         end
 
         if Input.Finished then

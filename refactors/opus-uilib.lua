@@ -4843,4 +4843,146 @@ function ui.configPage(name, makeScroller)
 			})
 return page
 end
+function ui.billFace(part, face, INK_GREEN)
+			local gui = Instance.new("SurfaceGui")
+			gui.Face = face
+			gui.CanvasSize = Vector2.new(100, 46)
+			gui.LightInfluence = 1
+			gui.Parent = part
+
+			local label = Instance.new("TextLabel")
+			label.Size = UDim2.fromScale(1, 1)
+			label.BackgroundTransparency = 1
+			label.Font = Enum.Font.GothamBlack
+			label.TextScaled = true
+			label.TextColor3 = INK_GREEN
+			label.Text = "$"
+			label.Parent = gui
+
+			local border = Instance.new("UIStroke")
+			border.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+			border.Color = INK_GREEN
+			border.Thickness = 3
+			border.Transparency = 0.3
+			border.Parent = label
+return label, border
+end
+function ui.binaryDigit(attachment)
+			local billboard = Instance.new("BillboardGui")
+			billboard.Adornee = attachment
+			billboard.LightInfluence = 0
+			billboard.MaxDistance = 300
+			billboard.Parent = attachment
+			local label = Instance.new("TextLabel")
+			label.Size = UDim2.fromScale(1, 1)
+			label.BackgroundTransparency = 1
+			label.Font = Enum.Font.Arcade
+			label.TextScaled = true
+			label.TextStrokeColor3 = Color3.new(0, 0, 0)
+			label.Text = math.random() < 0.5 and "0" or "1"
+			label.Parent = billboard
+return billboard, label
+end
+function ui.vignette(pg)
+	local vignetteGui = Instance.new("ScreenGui")
+	vignetteGui.Name = "OpusClient_Vignette"
+	vignetteGui.IgnoreGuiInset = true
+	vignetteGui.ResetOnSpawn = false
+	vignetteGui.DisplayOrder = -10
+	vignetteGui.Enabled = false
+	vignetteGui.Parent = pg
+
+	local vignetteGradients = {}
+	for _, spec in ipairs({
+		{ UDim2.fromScale(0, 0), UDim2.fromScale(1, 0.22), 90 },
+		{ UDim2.fromScale(0, 0.78), UDim2.fromScale(1, 0.22), -90 },
+		{ UDim2.fromScale(0, 0), UDim2.fromScale(0.16, 1), 0 },
+		{ UDim2.fromScale(0.84, 0), UDim2.fromScale(0.16, 1), 180 },
+		}) do
+		local strip = Instance.new("Frame")
+		strip.Position = spec[1]
+		strip.Size = spec[2]
+		strip.BackgroundColor3 = Color3.new(0, 0, 0)
+		strip.BorderSizePixel = 0
+		strip.Parent = vignetteGui
+		local gradient = Instance.new("UIGradient")
+		gradient.Rotation = spec[3]
+		gradient.Parent = strip
+		table.insert(vignetteGradients, gradient)
+	end
+return vignetteGui, vignetteGradients
+end
+function ui.petLabel(anchorPart, s, style, textColor)
+			local billboard = Instance.new("BillboardGui")
+			billboard.Size = UDim2.fromOffset(140, 22)
+			billboard.StudsOffset = Vector3.new(0, (style == "Кролик" and 1.8 or 0.9) * s + 0.6, 0)
+			billboard.Adornee = anchorPart
+			billboard.Parent = anchorPart
+
+			local label = Instance.new("TextLabel")
+			label.Size = UDim2.fromScale(1, 1)
+			label.BackgroundTransparency = 1
+			label.Font = Enum.Font.GothamBold
+			label.TextSize = 13
+			label.TextStrokeTransparency = 0.4
+			label.TextColor3 = textColor
+			label.Parent = billboard
+return label
+end
+function ui.hitNumber(part, color, damage)
+			local billboard = Instance.new("BillboardGui")
+			billboard.Size = UDim2.fromOffset(100, 30)
+			billboard.StudsOffset = Vector3.new(0, 1, 0)
+			billboard.AlwaysOnTop = true
+			billboard.Adornee = part
+			billboard.Parent = part
+
+			local label = Instance.new("TextLabel")
+			label.Size = UDim2.fromScale(1, 1)
+			label.BackgroundTransparency = 1
+			label.Font = Enum.Font.GothamBlack
+			label.TextSize = 20
+			label.TextColor3 = color
+			label.TextStrokeTransparency = 0.3
+			label.Text = "-" .. tostring(math.max(1, math.floor(damage + 0.5)))
+			label.Parent = billboard
+return billboard, label
+end
+function ui.hitMarker(root, color, hitFolder)
+			local billboard = Instance.new("BillboardGui")
+			billboard.Size = UDim2.fromOffset(34, 34)
+			billboard.AlwaysOnTop = true
+			billboard.Adornee = root
+			billboard.Parent = hitFolder
+
+			local marker = new("Frame", {
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Position = UDim2.fromScale(0.5, 0.5),
+				Size = UDim2.fromOffset(22, 22),
+				BackgroundTransparency = 1,
+				Rotation = 45,
+				Parent = billboard,
+			})
+			local scale = new("UIScale", { Scale = 1.4, Parent = marker })
+
+			local bars = {}
+			for _, spec in ipairs({
+				{ UDim2.new(0.5, 0, 0, 3), UDim2.fromOffset(2, 7) },
+				{ UDim2.new(0.5, 0, 1, -3), UDim2.fromOffset(2, 7) },
+				{ UDim2.new(0, 3, 0.5, 0), UDim2.fromOffset(7, 2) },
+				{ UDim2.new(1, -3, 0.5, 0), UDim2.fromOffset(7, 2) },
+				}) do
+				local bar = new("Frame", {
+					AnchorPoint = Vector2.new(0.5, 0.5),
+					Position = spec[1],
+					Size = spec[2],
+					BackgroundColor3 = color,
+					BorderSizePixel = 0,
+					Parent = marker,
+				})
+				new("UIStroke", { Color = Color3.fromRGB(0, 0, 0), Transparency = 0.4, Parent = bar })
+				table.insert(bars, bar)
+			end
+return billboard, scale, bars
+end
 return ui

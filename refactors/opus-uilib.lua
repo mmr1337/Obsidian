@@ -4704,4 +4704,143 @@ end)
 
 		table.insert(presetsSection.cards, { frame = card, name = preset.name, desc = preset.desc })
 end
+function ui.configForm(configSection, C)
+	local createCard = new("Frame", {
+		LayoutOrder = 0,
+		BackgroundColor3 = C.card,
+		BackgroundTransparency = 0.15,
+		BorderSizePixel = 0,
+		Parent = configSection.grid,
+	})
+	round(createCard, 8)
+	outline(createCard, C.accent, 0.55)
+
+	local createTitle = new("TextLabel", {
+		Position = UDim2.fromOffset(12, 6),
+		Size = UDim2.new(1, -24, 0, 20),
+		BackgroundTransparency = 1,
+		Font = Enum.Font.GothamBold,
+		TextSize = 13,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextColor3 = C.text,
+		Text = "Новый конфиг",
+		Parent = createCard,
+	})
+
+	local nameBox = new("TextBox", {
+		Position = UDim2.fromOffset(12, 32),
+		Size = UDim2.new(1, -58, 0, 24),
+		BackgroundColor3 = C.inner,
+		BorderSizePixel = 0,
+		Font = Enum.Font.Gotham,
+		TextSize = 12,
+		TextColor3 = C.text,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		PlaceholderText = "Название...",
+		PlaceholderColor3 = C.sub,
+		ClearTextOnFocus = false,
+		Text = "",
+		Parent = createCard,
+	})
+	round(nameBox, 6)
+	new("UIPadding", { PaddingLeft = UDim.new(0, 8), Parent = nameBox })
+
+	local saveButton = new("TextButton", {
+		Position = UDim2.new(1, -40, 0, 32),
+		Size = UDim2.fromOffset(28, 24),
+		BackgroundColor3 = C.accent,
+		BorderSizePixel = 0,
+		AutoButtonColor = true,
+		Font = Enum.Font.GothamBold,
+		TextSize = 16,
+		TextColor3 = C.text,
+		Text = "+",
+		Parent = createCard,
+	})
+	round(saveButton, 6)
+
+	local flashId = 0
+	local function flashTitle(text, color)
+		flashId += 1
+		local myId = flashId
+		createTitle.Text = text
+		createTitle.TextColor3 = color or C.text
+		task.delay(1.6, function()
+			if flashId == myId then
+				createTitle.Text = "Новый конфиг"
+				createTitle.TextColor3 = C.text
+			end
+		end)
+	end
+return nameBox, saveButton, flashTitle
+end
+function ui.configCard(configSection, C, index, name, descText, isAutoload)
+			local card = new("TextButton", {
+				LayoutOrder = index,
+				BackgroundColor3 = C.card,
+				BackgroundTransparency = 0.15,
+				BorderSizePixel = 0,
+				AutoButtonColor = false,
+				Text = "",
+				Parent = configSection.grid,
+			})
+			round(card, 8)
+
+			local icon = new("Frame", {
+				Position = UDim2.fromOffset(12, 13),
+				Size = UDim2.fromOffset(12, 12),
+				BackgroundColor3 = isAutoload and C.accent or C.accentDim,
+				BorderSizePixel = 0,
+				Parent = card,
+			})
+			round(icon, 3)
+
+			new("TextLabel", {
+				Position = UDim2.fromOffset(32, 8),
+				Size = UDim2.new(1, -62, 0, 22),
+				BackgroundTransparency = 1,
+				Font = Enum.Font.GothamBold,
+				TextSize = 13,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextTruncate = Enum.TextTruncate.AtEnd,
+				TextColor3 = C.text,
+				Text = name,
+				Parent = card,
+			})
+
+			local desc = new("TextLabel", {
+				Position = UDim2.fromOffset(12, 32),
+				Size = UDim2.new(1, -24, 0, 28),
+				BackgroundTransparency = 1,
+				Font = Enum.Font.Gotham,
+				TextSize = 11,
+				TextWrapped = true,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextYAlignment = Enum.TextYAlignment.Top,
+				TextColor3 = C.sub,
+				Text = descText,
+				Parent = card,
+			})
+
+			local dots = new("TextButton", {
+				Position = UDim2.new(1, -28, 0, 6),
+				Size = UDim2.fromOffset(22, 22),
+				BackgroundTransparency = 1,
+				Text = "",
+				ZIndex = 2,
+				Parent = card,
+			})
+			drawIcon(dots, "kebab", 14)(C.sub)
+
+return card, desc, dots
+end
+function ui.configPage(name, makeScroller)
+			local page = makeScroller(name .. "_Config")
+			new("UIListLayout", {
+				Padding = UDim.new(0, 6),
+				SortOrder = Enum.SortOrder.LayoutOrder,
+				Parent = page,
+			})
+return page
+end
 return ui

@@ -2488,6 +2488,7 @@ local numberSetting = ctx.numberSetting
 local choiceSetting = ctx.choiceSetting
 local glassRows = ctx.glassRows
 local showToast = ctx.showToast
+local playToggleSound = assert(ctx.playToggleSound, "UI sound callback missing")
 local addModule = ctx.addModule
 local watermarkClicked = ctx.watermarkClicked
 local PET = ctx.PET

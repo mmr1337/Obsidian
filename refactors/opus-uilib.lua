@@ -2378,3 +2378,1193 @@ local ts = game:GetService("TweenService")
 						Position = UDim2.new(right and 1 or 0, 0, 0, 0),
 						Size = UDim2.new(0, 2, 1, 0),
 						BackgroundColor3 = C.accent,
+						BorderSizePixel = 0,
+						Parent = frame,
+					})
+					local label = new("TextLabel", {
+						Position = UDim2.fromOffset(right and 6 or 10, 0),
+						Size = UDim2.new(1, -16, 1, 0),
+						BackgroundTransparency = 1,
+						Font = FONT,
+						TextSize = TEXT_SIZE,
+						RichText = true,
+						TextXAlignment = right and Enum.TextXAlignment.Right or Enum.TextXAlignment.Left,
+						TextColor3 = C.text,
+						TextStrokeTransparency = 0.6,
+						TextTransparency = 1,
+						Text = item.rich,
+						Parent = frame,
+					})
+					row = { frame = frame, bar = bar, label = label }
+					rows[item.name] = row
+
+					ts:Create(frame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+						Position = targetPosition,
+						BackgroundTransparency = ARRAYLIST.Background and 0.3 or 1,
+					}):Play()
+					ts:Create(label, TweenInfo.new(0.25), { TextTransparency = 0 }):Play()
+				else
+					row.frame.AnchorPoint = anchor
+					row.label.Text = item.rich
+					row.label.TextXAlignment = right and Enum.TextXAlignment.Right or Enum.TextXAlignment.Left
+					row.label.Position = UDim2.fromOffset(right and 6 or 10, 0)
+					row.bar.AnchorPoint = Vector2.new(right and 1 or 0, 0)
+					row.bar.Position = UDim2.new(right and 1 or 0, 0, 0, 0)
+					row.frame.BackgroundTransparency = ARRAYLIST.Background and 0.3 or 1
+
+					if row.frame.Position ~= targetPosition then
+						ts:Create(row.frame, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
+							Position = targetPosition,
+						}):Play()
+					end
+					row.frame.Size = UDim2.fromOffset(item.width, ROW_HEIGHT)
+				end
+				row.index = index
+			end
+
+			for name in pairs(rows) do
+				if not wanted[name] then
+					removeRow(name)
+				end
+			end
+		end
+
+		rs.RenderStepped:Connect(function()
+			local now = os.clock()
+			if now - lastCheck > 0.15 then
+				lastCheck = now
+				update()
+			end
+
+			for _, row in pairs(rows) do
+				if not row.removing then
+					local color = ARRAYLIST.Rainbow
+						and Color3.fromHSV((now * 0.25 + (row.index or 0) * 0.06) % 1, 0.7, 1)
+						or C.accent
+					row.bar.BackgroundColor3 = color
+					row.frame.BackgroundColor3 = C.bgBottom
+					row.label.TextColor3 = ARRAYLIST.Rainbow and color or C.text
+				end
+			end
+		end)
+	end
+
+return ARRAYLIST, ARRAYLIST_POSITIONS
+end
+function ui.finish(ctx)
+local rs = ctx.rs
+local uis = ctx.uis
+local ts = ctx.ts
+local lp = ctx.lp
+local pg = ctx.pg
+local BOOT = ctx.BOOT
+local CONFIG = ctx.CONFIG
+local HAT = ctx.HAT
+local Lighting = ctx.Lighting
+local AURA = ctx.AURA
+local BACK = ctx.BACK
+local C = ctx.C
+local MENU_STYLE = ctx.MENU_STYLE
+local DECOR_POSITIONS = ctx.DECOR_POSITIONS
+local DECOR_LAYERS = ctx.DECOR_LAYERS
+local KEYBINDS = ctx.KEYBINDS
+local new = ctx.new
+local round = ctx.round
+local outline = ctx.outline
+local drawIcon = ctx.drawIcon
+local drawLogoMark = ctx.drawLogoMark
+local LOGO_BG = ctx.LOGO_BG
+local view = ctx.view
+local screenGui = ctx.screenGui
+local frame = ctx.frame
+local windowBackground = ctx.windowBackground
+local menuHint = ctx.menuHint
+local sidebar = ctx.sidebar
+local sections = ctx.sections
+local uiRefreshers = ctx.uiRefreshers
+local selectSection = ctx.selectSection
+local createSection = ctx.createSection
+local numberSetting = ctx.numberSetting
+local choiceSetting = ctx.choiceSetting
+local glassRows = ctx.glassRows
+local showToast = ctx.showToast
+local addModule = ctx.addModule
+local watermarkClicked = ctx.watermarkClicked
+local PET = ctx.PET
+do
+	local updateMenuBlur
+
+	do
+		local THEMES = {
+			["Бордовый"] = {
+				bgTop = Color3.fromRGB(92, 32, 44), bgBottom = Color3.fromRGB(38, 14, 20),
+				panel = Color3.fromRGB(30, 11, 16), card = Color3.fromRGB(80, 30, 40),
+				cardHover = Color3.fromRGB(98, 38, 50), inner = Color3.fromRGB(52, 19, 27),
+				accent = Color3.fromRGB(250, 90, 106), accentDim = Color3.fromRGB(140, 56, 70),
+				off = Color3.fromRGB(104, 76, 82), sub = Color3.fromRGB(226, 204, 209),
+				line = Color3.fromRGB(160, 88, 100),
+			},
+			["Полночь"] = {
+				bgTop = Color3.fromRGB(36, 50, 104), bgBottom = Color3.fromRGB(14, 18, 42),
+				panel = Color3.fromRGB(12, 16, 36), card = Color3.fromRGB(38, 50, 100),
+				cardHover = Color3.fromRGB(48, 62, 120), inner = Color3.fromRGB(22, 28, 58),
+				accent = Color3.fromRGB(118, 162, 255), accentDim = Color3.fromRGB(62, 86, 160),
+				off = Color3.fromRGB(74, 82, 112), sub = Color3.fromRGB(206, 214, 240),
+				line = Color3.fromRGB(88, 110, 184),
+			},
+			["Аметист"] = {
+				bgTop = Color3.fromRGB(80, 38, 116), bgBottom = Color3.fromRGB(30, 15, 46),
+				panel = Color3.fromRGB(24, 12, 38), card = Color3.fromRGB(72, 36, 104),
+				cardHover = Color3.fromRGB(88, 46, 126), inner = Color3.fromRGB(44, 22, 66),
+				accent = Color3.fromRGB(198, 134, 255), accentDim = Color3.fromRGB(110, 70, 160),
+				off = Color3.fromRGB(96, 78, 114), sub = Color3.fromRGB(222, 206, 240),
+				line = Color3.fromRGB(134, 92, 186),
+			},
+			["Изумруд"] = {
+				bgTop = Color3.fromRGB(26, 88, 72), bgBottom = Color3.fromRGB(10, 32, 27),
+				panel = Color3.fromRGB(9, 26, 22), card = Color3.fromRGB(30, 78, 65),
+				cardHover = Color3.fromRGB(38, 96, 80), inner = Color3.fromRGB(17, 46, 38),
+				accent = Color3.fromRGB(88, 232, 170), accentDim = Color3.fromRGB(44, 128, 96),
+				off = Color3.fromRGB(72, 98, 90), sub = Color3.fromRGB(204, 234, 222),
+				line = Color3.fromRGB(70, 142, 116),
+			},
+			["Графит"] = {
+				bgTop = Color3.fromRGB(66, 66, 74), bgBottom = Color3.fromRGB(26, 26, 30),
+				panel = Color3.fromRGB(20, 20, 24), card = Color3.fromRGB(58, 58, 66),
+				cardHover = Color3.fromRGB(72, 72, 82), inner = Color3.fromRGB(36, 36, 42),
+				accent = Color3.fromRGB(255, 176, 90), accentDim = Color3.fromRGB(130, 96, 64),
+				off = Color3.fromRGB(90, 90, 98), sub = Color3.fromRGB(220, 220, 226),
+				line = Color3.fromRGB(118, 118, 130),
+			},
+			["Неон"] = {
+				bgTop = Color3.fromRGB(40, 22, 78), bgBottom = Color3.fromRGB(17, 9, 33),
+				panel = Color3.fromRGB(13, 7, 26), card = Color3.fromRGB(35, 19, 68),
+				cardHover = Color3.fromRGB(43, 24, 84), inner = Color3.fromRGB(23, 13, 44),
+				accent = Color3.fromRGB(255, 70, 200), accentDim = Color3.fromRGB(118, 37, 111),
+				off = Color3.fromRGB(83, 76, 102), sub = Color3.fromRGB(238, 216, 235),
+				line = Color3.fromRGB(144, 46, 140),
+			},
+			["Океан"] = {
+				bgTop = Color3.fromRGB(18, 64, 92), bgBottom = Color3.fromRGB(8, 27, 39),
+				panel = Color3.fromRGB(6, 21, 30), card = Color3.fromRGB(16, 56, 80),
+				cardHover = Color3.fromRGB(19, 69, 99), inner = Color3.fromRGB(10, 36, 52),
+				accent = Color3.fromRGB(60, 205, 255), accentDim = Color3.fromRGB(31, 107, 139),
+				off = Color3.fromRGB(74, 93, 108), sub = Color3.fromRGB(215, 232, 242),
+				line = Color3.fromRGB(39, 133, 173),
+			},
+			["Закат"] = {
+				bgTop = Color3.fromRGB(96, 44, 36), bgBottom = Color3.fromRGB(40, 18, 15),
+				panel = Color3.fromRGB(32, 15, 12), card = Color3.fromRGB(84, 38, 31),
+				cardHover = Color3.fromRGB(104, 48, 39), inner = Color3.fromRGB(55, 25, 21),
+				accent = Color3.fromRGB(255, 140, 70), accentDim = Color3.fromRGB(141, 74, 42),
+				off = Color3.fromRGB(106, 85, 85), sub = Color3.fromRGB(238, 224, 220),
+				line = Color3.fromRGB(176, 91, 54),
+			},
+			["Сакура"] = {
+				bgTop = Color3.fromRGB(92, 46, 72), bgBottom = Color3.fromRGB(39, 19, 30),
+				panel = Color3.fromRGB(30, 15, 24), card = Color3.fromRGB(80, 40, 63),
+				cardHover = Color3.fromRGB(99, 50, 78), inner = Color3.fromRGB(52, 26, 41),
+				accent = Color3.fromRGB(255, 150, 200), accentDim = Color3.fromRGB(139, 78, 109),
+				off = Color3.fromRGB(104, 86, 100), sub = Color3.fromRGB(238, 226, 235),
+				line = Color3.fromRGB(173, 98, 136),
+			},
+			["Лава"] = {
+				bgTop = Color3.fromRGB(70, 22, 12), bgBottom = Color3.fromRGB(29, 9, 5),
+				panel = Color3.fromRGB(23, 7, 4), card = Color3.fromRGB(61, 19, 10),
+				cardHover = Color3.fromRGB(76, 24, 13), inner = Color3.fromRGB(40, 13, 7),
+				accent = Color3.fromRGB(255, 96, 30), accentDim = Color3.fromRGB(130, 47, 17),
+				off = Color3.fromRGB(95, 76, 76), sub = Color3.fromRGB(238, 219, 215),
+				line = Color3.fromRGB(161, 58, 21),
+			},
+			["Лёд"] = {
+				bgTop = Color3.fromRGB(44, 70, 92), bgBottom = Color3.fromRGB(18, 29, 39),
+				panel = Color3.fromRGB(15, 23, 30), card = Color3.fromRGB(38, 61, 80),
+				cardHover = Color3.fromRGB(48, 76, 99), inner = Color3.fromRGB(25, 40, 52),
+				accent = Color3.fromRGB(160, 225, 255), accentDim = Color3.fromRGB(82, 118, 139),
+				off = Color3.fromRGB(85, 95, 108), sub = Color3.fromRGB(227, 235, 242),
+				line = Color3.fromRGB(101, 147, 173),
+			},
+			["Токсик"] = {
+				bgTop = Color3.fromRGB(26, 46, 20), bgBottom = Color3.fromRGB(11, 19, 8),
+				panel = Color3.fromRGB(9, 15, 7), card = Color3.fromRGB(23, 40, 17),
+				cardHover = Color3.fromRGB(28, 50, 22), inner = Color3.fromRGB(15, 26, 11),
+				accent = Color3.fromRGB(150, 255, 60), accentDim = Color3.fromRGB(70, 120, 32),
+				off = Color3.fromRGB(78, 86, 79), sub = Color3.fromRGB(226, 238, 218),
+				line = Color3.fromRGB(86, 147, 40),
+			},
+			["Золото"] = {
+				bgTop = Color3.fromRGB(58, 46, 22), bgBottom = Color3.fromRGB(24, 19, 9),
+				panel = Color3.fromRGB(19, 15, 7), card = Color3.fromRGB(50, 40, 19),
+				cardHover = Color3.fromRGB(63, 50, 24), inner = Color3.fromRGB(33, 26, 13),
+				accent = Color3.fromRGB(245, 196, 72), accentDim = Color3.fromRGB(122, 97, 38),
+				off = Color3.fromRGB(90, 86, 80), sub = Color3.fromRGB(237, 231, 220),
+				line = Color3.fromRGB(149, 120, 46),
+			},
+			["Лаванда"] = {
+				bgTop = Color3.fromRGB(66, 54, 100), bgBottom = Color3.fromRGB(28, 23, 42),
+				panel = Color3.fromRGB(22, 18, 33), card = Color3.fromRGB(57, 47, 87),
+				cardHover = Color3.fromRGB(71, 58, 108), inner = Color3.fromRGB(38, 31, 57),
+				accent = Color3.fromRGB(190, 160, 255), accentDim = Color3.fromRGB(102, 86, 142),
+				off = Color3.fromRGB(94, 89, 111), sub = Color3.fromRGB(230, 227, 242),
+				line = Color3.fromRGB(128, 107, 178),
+			},
+			["Мята"] = {
+				bgTop = Color3.fromRGB(24, 74, 66), bgBottom = Color3.fromRGB(10, 31, 28),
+				panel = Color3.fromRGB(8, 24, 22), card = Color3.fromRGB(21, 64, 57),
+				cardHover = Color3.fromRGB(26, 80, 71), inner = Color3.fromRGB(14, 42, 38),
+				accent = Color3.fromRGB(110, 240, 200), accentDim = Color3.fromRGB(54, 126, 106),
+				off = Color3.fromRGB(77, 97, 97), sub = Color3.fromRGB(221, 236, 235),
+				line = Color3.fromRGB(66, 156, 132),
+			},
+			["Кровь"] = {
+				bgTop = Color3.fromRGB(60, 8, 12), bgBottom = Color3.fromRGB(25, 3, 5),
+				panel = Color3.fromRGB(20, 3, 4), card = Color3.fromRGB(52, 7, 10),
+				cardHover = Color3.fromRGB(65, 9, 13), inner = Color3.fromRGB(34, 5, 7),
+				accent = Color3.fromRGB(225, 30, 45), accentDim = Color3.fromRGB(114, 15, 22),
+				off = Color3.fromRGB(91, 70, 76), sub = Color3.fromRGB(235, 211, 217),
+				line = Color3.fromRGB(141, 19, 28),
+			},
+			["Кофе"] = {
+				bgTop = Color3.fromRGB(70, 48, 36), bgBottom = Color3.fromRGB(29, 20, 15),
+				panel = Color3.fromRGB(23, 16, 12), card = Color3.fromRGB(61, 42, 31),
+				cardHover = Color3.fromRGB(76, 52, 39), inner = Color3.fromRGB(40, 27, 21),
+				accent = Color3.fromRGB(225, 170, 120), accentDim = Color3.fromRGB(118, 87, 62),
+				off = Color3.fromRGB(95, 86, 85), sub = Color3.fromRGB(235, 228, 226),
+				line = Color3.fromRGB(147, 108, 78),
+			},
+		}
+
+		THEMES["Прозрачный"] = {
+			bgTop = Color3.fromRGB(175, 175, 180), bgBottom = Color3.fromRGB(125, 125, 130),
+			panel = Color3.fromRGB(95, 95, 100), card = Color3.fromRGB(155, 155, 160),
+			cardHover = Color3.fromRGB(180, 180, 186), inner = Color3.fromRGB(115, 115, 120),
+			accent = Color3.fromRGB(190, 190, 197), accentDim = Color3.fromRGB(120, 120, 126),
+			off = Color3.fromRGB(78, 78, 84), sub = Color3.fromRGB(232, 232, 236),
+			line = Color3.fromRGB(236, 236, 240),
+		}
+		local THEME_ORDER = { "Прозрачный", "Бордовый", "Полночь", "Аметист", "Изумруд", "Графит", "Неон", "Океан", "Закат", "Сакура", "Лава", "Лёд", "Токсик", "Золото", "Лаванда", "Мята", "Кровь", "Кофе" }
+		local THEME_KEYS = { "bgTop", "bgBottom", "panel", "card", "cardHover", "inner", "accent", "accentDim", "off", "sub", "line" }
+		local appliedTheme = "Бордовый"
+		local themeCards = {}
+
+		local function colorKey(color)
+			return string.format("%d,%d,%d",
+				math.floor(color.R * 255 + 0.5), math.floor(color.G * 255 + 0.5), math.floor(color.B * 255 + 0.5))
+		end
+
+		local function recolor(root, map)
+			for _, obj in ipairs(root:GetDescendants()) do
+				if obj:IsA("GuiObject") and obj:GetAttribute("KeepColor") then
+					continue
+				end
+				if obj:IsA("GuiObject") then
+					local background = map[colorKey(obj.BackgroundColor3)]
+					if background then
+						obj.BackgroundColor3 = background
+					end
+					if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+						local textColor = map[colorKey(obj.TextColor3)]
+						if textColor then
+							obj.TextColor3 = textColor
+						end
+						if obj:IsA("TextBox") then
+							local placeholder = map[colorKey(obj.PlaceholderColor3)]
+							if placeholder then
+								obj.PlaceholderColor3 = placeholder
+							end
+						end
+					end
+					if obj:IsA("ScrollingFrame") then
+						local bar = map[colorKey(obj.ScrollBarImageColor3)]
+						if bar then
+							obj.ScrollBarImageColor3 = bar
+						end
+					end
+				elseif obj:IsA("UIStroke") then
+					local strokeColor = map[colorKey(obj.Color)]
+					if strokeColor then
+						obj.Color = strokeColor
+					end
+				elseif obj:IsA("UIGradient") then
+					local changed, keypoints = false, {}
+					for _, keypoint in ipairs(obj.Color.Keypoints) do
+						local mapped = map[colorKey(keypoint.Value)]
+						changed = changed or mapped ~= nil
+						table.insert(keypoints, ColorSequenceKeypoint.new(keypoint.Time, mapped or keypoint.Value))
+					end
+					if changed then
+						obj.Color = ColorSequence.new(keypoints)
+					end
+				end
+			end
+		end
+
+		local function refreshThemeCards()
+			for name, entry in pairs(themeCards) do
+				local active = name == appliedTheme
+				entry.stroke.Color = active and C.accent or C.line
+				entry.stroke.Transparency = active and 0.2 or 0.65
+				entry.badge.Visible = active
+				entry.badge.TextColor3 = C.accent
+			end
+		end
+
+		local CLEAR_THEME = "Прозрачный"
+		local clearLevels = nil
+		local clearConnection = nil
+
+		local function clearObject(obj)
+			if obj:GetAttribute("KeepColor") then
+				return
+			end
+			if obj:IsA("GuiObject") then
+				local level = clearLevels[colorKey(obj.BackgroundColor3)]
+				if level and obj.BackgroundTransparency < 1 and obj:GetAttribute("OpusClearBg") == nil then
+					obj:SetAttribute("OpusClearBg", obj.BackgroundTransparency)
+					obj.BackgroundTransparency = math.max(obj.BackgroundTransparency, level)
+				end
+				if (obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox"))
+					and obj:GetAttribute("OpusClearText") == nil then
+					obj:SetAttribute("OpusClearText", obj.TextStrokeTransparency)
+					obj.TextStrokeTransparency = math.min(obj.TextStrokeTransparency, 0.7)
+				end
+			elseif obj:IsA("UIStroke") and obj:GetAttribute("OpusClearStroke") == nil and obj.Transparency < 1 then
+
+				obj:SetAttribute("OpusClearStroke", obj.Transparency)
+				obj.Transparency = obj.Transparency * 0.55
+			end
+		end
+
+		local function restoreObject(obj)
+			local bg = obj:GetAttribute("OpusClearBg")
+			if bg ~= nil then
+				obj.BackgroundTransparency = bg
+				obj:SetAttribute("OpusClearBg", nil)
+			end
+			local text = obj:GetAttribute("OpusClearText")
+			if text ~= nil then
+				obj.TextStrokeTransparency = text
+				obj:SetAttribute("OpusClearText", nil)
+			end
+			local stroke = obj:GetAttribute("OpusClearStroke")
+			if stroke ~= nil then
+				obj.Transparency = stroke
+				obj:SetAttribute("OpusClearStroke", nil)
+			end
+		end
+
+		local function setClearMode(on)
+			if on then
+				local theme = THEMES[CLEAR_THEME]
+				clearLevels = {
+					[colorKey(theme.bgTop)] = 0.9, [colorKey(theme.bgBottom)] = 0.88,
+					[colorKey(theme.panel)] = 0.9, [colorKey(theme.card)] = 0.86,
+					[colorKey(theme.cardHover)] = 0.82, [colorKey(theme.inner)] = 0.85,
+					[colorKey(theme.off)] = 0.65, [colorKey(theme.accentDim)] = 0.55,
+				}
+				for _, obj in ipairs(screenGui:GetDescendants()) do
+					clearObject(obj)
+				end
+				if not clearConnection then
+
+					clearConnection = screenGui.DescendantAdded:Connect(function(obj)
+						task.defer(function()
+							if obj.Parent and clearLevels then
+								clearObject(obj)
+							end
+						end)
+					end)
+				end
+			else
+				if clearConnection then
+					clearConnection:Disconnect()
+					clearConnection = nil
+				end
+				if clearLevels then
+					clearLevels = nil
+					for _, obj in ipairs(screenGui:GetDescendants()) do
+						restoreObject(obj)
+					end
+				end
+			end
+		end
+
+		local function applyTheme(name)
+			local theme = THEMES[name]
+			if not theme then
+				return
+			end
+			if name ~= appliedTheme then
+				local map = {}
+				for _, key in ipairs(THEME_KEYS) do
+					map[colorKey(C[key])] = theme[key]
+				end
+				recolor(screenGui, map)
+				local watermark = pg:FindFirstChild("JustVisuals_Watermark")
+				if watermark then
+					recolor(watermark, map)
+				end
+				for _, key in ipairs(THEME_KEYS) do
+					C[key] = theme[key]
+				end
+				appliedTheme = name
+			end
+			MENU_STYLE.Theme = name
+			setClearMode(name == CLEAR_THEME)
+			for _, refresh in ipairs(uiRefreshers) do
+				refresh()
+			end
+			refreshThemeCards()
+			if view.currentSection() and not view.currentModule() then
+				selectSection(view.currentSection())
+			end
+		end
+
+		local themesSection = createSection("Themes", "Settings")
+
+		for index, name in ipairs(THEME_ORDER) do
+			local theme = THEMES[name]
+			local card = new("TextButton", {
+				LayoutOrder = index,
+				BackgroundColor3 = C.card,
+				BackgroundTransparency = 0.15,
+				BorderSizePixel = 0,
+				AutoButtonColor = false,
+				Text = "",
+				Parent = themesSection.grid,
+			})
+			round(card, 8)
+			local stroke = outline(card, C.line, 0.65)
+
+			new("TextLabel", {
+				Position = UDim2.fromOffset(12, 8),
+				Size = UDim2.new(1, -80, 0, 20),
+				BackgroundTransparency = 1,
+				Font = Enum.Font.GothamBold,
+				TextSize = 13,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextColor3 = C.text,
+				Text = name,
+				Parent = card,
+			})
+
+			local badge = new("TextLabel", {
+				AnchorPoint = Vector2.new(1, 0),
+				Position = UDim2.new(1, -10, 0, 8),
+				Size = UDim2.fromOffset(70, 20),
+				BackgroundTransparency = 1,
+				Font = Enum.Font.GothamBold,
+				TextSize = 11,
+				TextXAlignment = Enum.TextXAlignment.Right,
+				TextColor3 = C.accent,
+				Text = "активна",
+				Visible = false,
+				Parent = card,
+			})
+
+			for i, key in ipairs({ "bgTop", "card", "accentDim", "accent" }) do
+				local swatch = new("Frame", {
+					Position = UDim2.fromOffset(12 + (i - 1) * 24, 36),
+					Size = UDim2.fromOffset(18, 18),
+					BackgroundColor3 = theme[key],
+					BorderSizePixel = 0,
+					Parent = card,
+				})
+				round(swatch, 9)
+				new("UIStroke", { Color = Color3.fromRGB(255, 255, 255), Transparency = 0.8, Parent = swatch })
+
+				swatch:SetAttribute("KeepColor", true)
+			end
+
+			card.MouseButton1Click:Connect(function()
+				applyTheme(name)
+				playToggleSound(true)
+			end)
+			card.MouseEnter:Connect(function()
+				card.BackgroundColor3 = C.cardHover
+			end)
+			card.MouseLeave:Connect(function()
+				card.BackgroundColor3 = C.card
+			end)
+
+			themeCards[name] = { stroke = stroke, badge = badge }
+			table.insert(themesSection.cards, { frame = card, name = name, desc = "тема" })
+		end
+
+		addModule(themesSection, {
+			name = "Стекло",
+			desc = "Полупрозрачное меню с размытым миром за ним.",
+			source = MENU_STYLE,
+			key = "Glass",
+			settings = function(page)
+				numberSetting(page, "Прозрачность стекла", "GlassLevel", 0, 0.8, MENU_STYLE)
+			end,
+		})
+
+		addModule(themesSection, {
+			name = "PNG картинка",
+			desc = "Картинка-украшение рядом с меню.",
+			source = MENU_STYLE,
+			key = "Decor",
+			settings = function(page)
+				choiceSetting(page, "Где", "DecorPosition", DECOR_POSITIONS, MENU_STYLE)
+				choiceSetting(page, "Слой", "DecorLayer", DECOR_LAYERS, MENU_STYLE)
+				numberSetting(page, "Размер", "DecorSize", 40, 600, MENU_STYLE)
+				numberSetting(page, "Прозрачность", "DecorTransparency", 0, 0.95, MENU_STYLE)
+			end,
+		})
+
+		addModule(themesSection, {
+			name = "Предпросмотр",
+			desc = "Окно справа: ваш аватар с включёнными визуалами.",
+			source = MENU_STYLE,
+			key = "Preview",
+		})
+
+		addModule(themesSection, {
+			name = "Уведомления",
+			desc = "Всплывающие уведомления при включении функций.",
+			source = MENU_STYLE,
+			key = "Toasts",
+		})
+
+		addModule(themesSection, {
+			name = "Размытие фона",
+			desc = "Мир за открытым меню размывается.",
+			source = MENU_STYLE,
+			key = "Blur",
+			onToggle = function()
+				if updateMenuBlur then
+					updateMenuBlur()
+				end
+			end,
+		})
+
+		do
+			local function applyMenuKey()
+				local key = Enum.KeyCode[MENU_STYLE.MenuKey]
+				if not key or key == Enum.KeyCode.Unknown then
+					key = Enum.KeyCode.RightControl
+					MENU_STYLE.MenuKey = key.Name
+				end
+				CONFIG.MenuKey = key
+				menuHint.Text = key.Name .. " — меню\nПКМ по карточке — клавиша\ntgk: opus_client_rbx"
+				return key
+			end
+
+			local card = new("TextButton", {
+				LayoutOrder = 1000,
+				BackgroundColor3 = C.card,
+				BackgroundTransparency = 0.05,
+				BorderSizePixel = 0,
+				AutoButtonColor = false,
+				Text = "",
+				Parent = themesSection.grid,
+			})
+			round(card, 8)
+			local stroke = outline(card, C.line, 0.65)
+			local icon = new("Frame", {
+				Position = UDim2.fromOffset(10, 8),
+				Size = UDim2.fromOffset(22, 22),
+				BackgroundColor3 = C.accent,
+				BorderSizePixel = 0,
+				Parent = card,
+			})
+			round(icon, 6)
+			drawIcon(icon, "square", 12)(C.text)
+			new("TextLabel", {
+				Position = UDim2.fromOffset(40, 8),
+				Size = UDim2.new(1, -50, 0, 22),
+				BackgroundTransparency = 1,
+				Font = Enum.Font.GothamBold,
+				TextSize = 14,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextColor3 = C.text,
+				Text = "Клавиша меню",
+				Parent = card,
+			})
+			local desc = new("TextLabel", {
+				Position = UDim2.fromOffset(12, 32),
+				Size = UDim2.new(1, -24, 0, 28),
+				BackgroundTransparency = 1,
+				Font = Enum.Font.Gotham,
+				TextSize = 12,
+				TextWrapped = true,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextYAlignment = Enum.TextYAlignment.Top,
+				TextColor3 = C.sub,
+				Text = "",
+				Parent = card,
+			})
+
+			local capturing = false
+			local function refresh()
+				local key = applyMenuKey()
+				if not capturing then
+					desc.Text = "Сейчас: " .. key.Name .. ". Нажмите, чтобы сменить."
+					desc.TextColor3 = C.sub
+				end
+			end
+
+			card.MouseButton1Click:Connect(function()
+				capturing = true
+				desc.Text = "Нажмите новую клавишу… (Esc — отмена)"
+				desc.TextColor3 = C.accent
+				stroke.Color = C.accent
+				stroke.Transparency = 0.3
+			end)
+
+			uis.InputBegan:Connect(function(input)
+				if not capturing or input.UserInputType ~= Enum.UserInputType.Keyboard then
+					return
+				end
+				capturing = false
+				stroke.Color = C.line
+				stroke.Transparency = 0.65
+				local key = input.KeyCode
+				if key ~= Enum.KeyCode.Escape and key ~= Enum.KeyCode.Unknown then
+
+					task.defer(function()
+
+						for name, bound in pairs(KEYBINDS) do
+							if bound == key.Name then
+								KEYBINDS[name] = nil
+							end
+						end
+						MENU_STYLE.MenuKey = key.Name
+						for _, refresher in ipairs(uiRefreshers) do
+							refresher()
+						end
+						playToggleSound(true)
+						showToast("Клавиша меню: " .. key.Name, true)
+					end)
+				else
+					refresh()
+				end
+			end)
+
+			refresh()
+			table.insert(uiRefreshers, refresh)
+			table.insert(themesSection.cards, { frame = card, name = "Клавиша меню", desc = "открытие закрытие меню" })
+		end
+
+		refreshThemeCards()
+
+		table.insert(uiRefreshers, function()
+			if MENU_STYLE.Theme ~= appliedTheme and THEMES[MENU_STYLE.Theme] then
+				applyTheme(MENU_STYLE.Theme)
+			end
+			if updateMenuBlur then
+				updateMenuBlur()
+			end
+		end)
+	end
+
+	selectSection("Visuals")
+
+	local windowScale = new("UIScale", { Scale = 1, Parent = frame })
+
+	do
+		local glowGui = new("ScreenGui", {
+			Name = "OpusClient_MenuGlow",
+			ResetOnSpawn = false,
+			DisplayOrder = screenGui.DisplayOrder - 1,
+			Enabled = false,
+			Parent = pg,
+		})
+		local layers = {}
+		for _, spec in ipairs({ { 2, 2, 0.55 }, { 8, 4, 0.82 }, { 18, 6, 0.92 } }) do
+			local glow = new("Frame", {
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				BackgroundTransparency = 1,
+				BorderSizePixel = 0,
+				Parent = glowGui,
+			})
+			round(glow, 12 + spec[1] / 2)
+			local stroke = new("UIStroke", { Thickness = spec[2], Parent = glow })
+			table.insert(layers, {
+				frame = glow,
+				stroke = stroke,
+				scale = new("UIScale", { Parent = glow }),
+				grow = spec[1],
+				transparency = spec[3],
+			})
+		end
+
+		local glassEdge = new("UIStroke", {
+			Color = Color3.fromRGB(255, 255, 255),
+			Transparency = 0.82,
+			Thickness = 1,
+			Parent = windowBackground,
+		})
+
+		local appliedGlass = nil
+		local function applyGlass()
+			local level = MENU_STYLE.Glass and math.clamp(MENU_STYLE.GlassLevel, 0, 0.8) or 0
+
+			local cardCount = 0
+			for _, section in pairs(sections) do
+				cardCount += #section.cards
+			end
+			local clear = MENU_STYLE.Theme == "Прозрачный"
+			local key = tostring(MENU_STYLE.Glass) .. level .. "/" .. cardCount .. "/" .. tostring(clear)
+			if key == appliedGlass then
+				return
+			end
+			appliedGlass = key
+
+			windowBackground.BackgroundTransparency = clear and 0.9 or (0.04 + level * 0.75)
+			sidebar.BackgroundTransparency = clear and 0.92 or math.min(0.45 + level * 0.5, 0.92)
+			glassEdge.Transparency = clear and 0.25 or (MENU_STYLE.Glass and 0.7 or 0.9)
+
+			local cardTransparency = clear and 0.86 or (0.05 + level * 0.55)
+			for _, section in pairs(sections) do
+				for _, entry in ipairs(section.cards) do
+					if entry.frame.Parent then
+						entry.frame.BackgroundTransparency = cardTransparency
+					end
+				end
+			end
+			for _, row in ipairs(glassRows) do
+				row.BackgroundTransparency = clear and 0.88 or (0.2 + level * 0.45)
+			end
+			if updateMenuBlur then
+				updateMenuBlur()
+			end
+		end
+		table.insert(uiRefreshers, function()
+			appliedGlass = nil
+			applyGlass()
+		end)
+		applyGlass()
+
+		rs.RenderStepped:Connect(function()
+			glowGui.Enabled = screenGui.Enabled and frame.Visible
+			if not glowGui.Enabled then
+				return
+			end
+			applyGlass()
+			for _, layer in ipairs(layers) do
+				layer.frame.Position = frame.Position
+				layer.frame.Size = frame.Size + UDim2.fromOffset(layer.grow, layer.grow)
+				layer.scale.Scale = windowScale.Scale
+				layer.stroke.Color = C.accent
+				layer.stroke.Transparency = layer.transparency
+			end
+		end)
+	end
+
+	local menuBlur = new("BlurEffect", { Name = "JustVisualsMenuBlur", Size = 0, Parent = game:GetService("Lighting") })
+	local menuIsOpen = false
+
+	updateMenuBlur = function()
+		local glass = MENU_STYLE.Glass and math.clamp(MENU_STYLE.GlassLevel, 0, 0.8) or 0
+		local target = (menuIsOpen and MENU_STYLE.Blur) and (10 + glass * 18) or 0
+		ts:Create(menuBlur, TweenInfo.new(0.3, Enum.EasingStyle.Quad), { Size = target }):Play()
+	end
+
+	local menuOpen = false
+	local animationId = 0
+
+	local WINDOW_SIZE = Vector2.new(600, 400)
+	local SCREEN_MARGIN = 24
+
+	local PREVIEW_WIDTH = 210
+	local PREVIEW_GAP = 12
+
+	local function previewExtra()
+		return MENU_STYLE.Preview and (PREVIEW_WIDTH + PREVIEW_GAP) or 0
+	end
+
+	local function getFitScale()
+		local available = screenGui.AbsoluteSize
+		if available.X < 1 or available.Y < 1 then
+			return 1
+		end
+		local scale = math.min(
+			(available.X - SCREEN_MARGIN * 2) / (WINDOW_SIZE.X + previewExtra()),
+			(available.Y - SCREEN_MARGIN * 2) / WINDOW_SIZE.Y
+		)
+		return math.clamp(scale, 0.45, 1)
+	end
+
+	local function clampWindow()
+		local available = screenGui.AbsoluteSize
+		local scale = getFitScale()
+		local half = WINDOW_SIZE * scale / 2
+		local extra = previewExtra() * scale
+		local minX = math.min(0, -(available.X / 2 - half.X - SCREEN_MARGIN))
+		local maxX = available.X / 2 - half.X - extra - SCREEN_MARGIN
+		if maxX < minX then
+			maxX = minX
+		end
+		local maxY = math.max(0, available.Y / 2 - half.Y - SCREEN_MARGIN)
+		frame.Position = UDim2.new(
+			0.5, math.clamp(frame.Position.X.Offset, minX, maxX),
+			0.5, math.clamp(frame.Position.Y.Offset, -maxY, maxY)
+		)
+	end
+
+	screenGui:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+		if menuOpen then
+			windowScale.Scale = getFitScale()
+			clampWindow()
+		end
+	end)
+
+	uis.InputEnded:Connect(function(input)
+		if menuOpen and (input.UserInputType == Enum.UserInputType.MouseButton1
+			or input.UserInputType == Enum.UserInputType.Touch) then
+			clampWindow()
+		end
+	end)
+
+	do
+		local EFFECT_FOLDERS = { "BackAccessory_Local", "Aura_Local", "CustomPet_Local", "Bulba_Local", "Bottom_Local" }
+		local KEEP_CHILDREN = {
+			SpecialMesh = true, BlockMesh = true, CylinderMesh = true,
+			Decal = true, Texture = true, SurfaceAppearance = true,
+		}
+
+		local panel = new("Frame", {
+			Name = "Preview",
+			AnchorPoint = Vector2.new(0, 0.5),
+			Size = UDim2.fromOffset(PREVIEW_WIDTH, WINDOW_SIZE.Y),
+			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			BackgroundTransparency = windowBackground.BackgroundTransparency,
+			BorderSizePixel = 0,
+			ClipsDescendants = true,
+			Visible = false,
+			Parent = screenGui,
+		})
+		round(panel, 12)
+		outline(panel, C.line, 0.35)
+		new("UIGradient", { Rotation = 55, Color = ColorSequence.new(C.bgTop, C.bgBottom), Parent = panel })
+
+		local panelEdge = new("Frame", {
+			Size = UDim2.fromScale(1, 1),
+			BackgroundTransparency = 1,
+			Parent = panel,
+		})
+		round(panelEdge, 12)
+		local panelEdgeStroke = new("UIStroke", {
+			Color = Color3.fromRGB(255, 255, 255),
+			Transparency = 0.82,
+			Thickness = 1,
+			Parent = panelEdge,
+		})
+		panelEdgeStroke:SetAttribute("KeepColor", true)
+		local panelSheen = new("Frame", {
+			Size = UDim2.new(1, 0, 0.45, 0),
+			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			BackgroundTransparency = 0.94,
+			BorderSizePixel = 0,
+			Parent = panel,
+		})
+		round(panelSheen, 12)
+		new("UIGradient", { Rotation = 90, Transparency = NumberSequence.new(0, 1), Parent = panelSheen })
+		local panelScale = new("UIScale", { Parent = panel })
+
+		new("TextLabel", {
+			Position = UDim2.fromOffset(14, 10),
+			Size = UDim2.new(1, -28, 0, 20),
+			BackgroundTransparency = 1,
+			Font = Enum.Font.GothamBold,
+			TextSize = 14,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextColor3 = C.text,
+			Text = "Предпросмотр",
+			Parent = panel,
+		})
+		local subtitle = new("TextLabel", {
+			Position = UDim2.fromOffset(14, 30),
+			Size = UDim2.new(1, -28, 0, 16),
+			BackgroundTransparency = 1,
+			Font = Enum.Font.Gotham,
+			TextSize = 11,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextColor3 = C.sub,
+			Text = "",
+			Parent = panel,
+		})
+
+		local viewport = new("ViewportFrame", {
+			Position = UDim2.fromOffset(8, 54),
+			Size = UDim2.new(1, -16, 1, -88),
+			BackgroundColor3 = C.inner,
+			BackgroundTransparency = 0.4,
+			BorderSizePixel = 0,
+			Ambient = Color3.fromRGB(150, 150, 160),
+			LightColor = Color3.fromRGB(235, 235, 240),
+			LightDirection = Vector3.new(-0.4, -1, -0.6),
+			Parent = panel,
+		})
+		round(viewport, 10)
+		local viewCamera = Instance.new("Camera")
+		viewCamera.FieldOfView = 38
+		viewCamera.Parent = viewport
+		viewport.CurrentCamera = viewCamera
+
+		new("TextLabel", {
+			Position = UDim2.new(0, 14, 1, -30),
+			Size = UDim2.new(1, -28, 0, 20),
+			BackgroundTransparency = 1,
+			Font = Enum.Font.Gotham,
+			TextSize = 11,
+			TextColor3 = C.sub,
+			Text = "Тяните мышью, чтобы повернуть",
+			Parent = panel,
+		})
+
+		local yaw = math.rad(200)
+		local dragging = false
+		local lastX = 0
+		local lastDrag = 0
+		viewport.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				dragging = true
+				lastX = input.Position.X
+			end
+		end)
+		uis.InputChanged:Connect(function(input)
+			if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+				yaw -= (input.Position.X - lastX) * 0.012
+				lastX = input.Position.X
+				lastDrag = os.clock()
+			end
+		end)
+		uis.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				dragging = false
+			end
+		end)
+
+		local characterCopy = nil
+		local characterPairs = {}
+		local characterSignature = nil
+		local copiedCharacter = nil
+		local effectCopies = {}
+		local lastScan = 0
+
+		local function stripCopy(copy)
+			for _, child in ipairs(copy:GetChildren()) do
+				if not KEEP_CHILDREN[child.ClassName] then
+					child:Destroy()
+				end
+			end
+			copy.Anchored = true
+			copy.CastShadow = false
+		end
+
+		local function rebuildCharacter(character)
+			if characterCopy then
+				characterCopy:Destroy()
+				characterCopy = nil
+			end
+			table.clear(characterPairs)
+			if not character then
+				return
+			end
+
+			local sourcesById = {}
+			local nextId = 0
+			for _, object in ipairs(character:GetDescendants()) do
+				if object:IsA("BasePart") then
+					nextId += 1
+					object:SetAttribute("OpusPreviewId", nextId)
+					sourcesById[nextId] = object
+				end
+			end
+
+			local restore = {}
+			local function allowCopy(object)
+				if not object.Archivable then
+					object.Archivable = true
+					table.insert(restore, object)
+				end
+			end
+			allowCopy(character)
+			for _, object in ipairs(character:GetDescendants()) do
+				allowCopy(object)
+			end
+			local ok, copy = pcall(character.Clone, character)
+			for _, object in ipairs(restore) do
+				if object.Parent or object == character then
+					object.Archivable = false
+				end
+			end
+			if not ok or not copy then
+				return
+			end
+
+			for _, object in ipairs(copy:GetDescendants()) do
+				if object:IsA("BaseScript") or object:IsA("Sound") or object:IsA("ParticleEmitter")
+					or object:IsA("Trail") or object:IsA("Beam") or object:IsA("Highlight") or object:IsA("Light")
+					or object:IsA("JointInstance") or object:IsA("WeldConstraint") or object:IsA("Motor6D") then
+					object:Destroy()
+				elseif object:IsA("BasePart") then
+					object.Anchored = true
+					object.CastShadow = false
+					local source = sourcesById[object:GetAttribute("OpusPreviewId")]
+					if source then
+						table.insert(characterPairs, { source = source, copy = object })
+					else
+						object:Destroy()
+					end
+				end
+			end
+			local humanoid = copy:FindFirstChildOfClass("Humanoid")
+			if humanoid then
+				humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+			end
+			copy.Parent = viewport
+			characterCopy = copy
+		end
+
+		local function partCount(character)
+			local count = 0
+			for _, object in ipairs(character:GetDescendants()) do
+				if object:IsA("BasePart") then
+					count += 1
+				end
+			end
+			return count
+		end
+
+		local function scan(character, root)
+
+			local signature = character and partCount(character) or nil
+			if character ~= copiedCharacter or signature ~= characterSignature then
+				copiedCharacter = character
+				characterSignature = signature
+				rebuildCharacter(character)
+			end
+
+			local keep = {}
+			for _, folderName in ipairs(EFFECT_FOLDERS) do
+				for _, folder in ipairs(workspace:GetChildren()) do
+					if folder.Name ~= folderName or not root then
+						continue
+					end
+					for _, part in ipairs(folder:GetDescendants()) do
+						if part:IsA("BasePart") and (part.Position - root.Position).Magnitude < 12 then
+							keep[part] = true
+							if not effectCopies[part] then
+								local ok, copy = pcall(part.Clone, part)
+								if ok and copy then
+									stripCopy(copy)
+									copy.Parent = viewport
+									effectCopies[part] = copy
+								end
+							end
+						end
+					end
+				end
+			end
+			for part, copy in pairs(effectCopies) do
+				if not keep[part] or not part.Parent then
+					copy:Destroy()
+					effectCopies[part] = nil
+				end
+			end
+		end
+
+		local function activeVisuals()
+			local names = {}
+			for _, item in ipairs({ { HAT, "Hat" }, { BACK, "Back" }, { AURA, "Aura" }, { PET, "Pet" } }) do
+				if item[1].Enabled then
+					table.insert(names, item[2])
+				end
+			end
+			return #names > 0 and table.concat(names, " · ") or "визуалы не включены"
+		end
+
+		rs.RenderStepped:Connect(function(dt)
+			local visible = MENU_STYLE.Preview and screenGui.Enabled and frame.Visible
+			panel.Visible = visible
+			if not visible then
+				return
+			end
+
+			local glass = windowBackground.BackgroundTransparency
+			panel.BackgroundTransparency = glass
+			viewport.BackgroundTransparency = math.clamp(glass + 0.35, 0.4, 0.97)
+			panelEdgeStroke.Transparency = glass > 0.5 and 0.4 or 0.82
+
+			local scale = windowScale.Scale
+			panelScale.Scale = scale
+			panel.Position = frame.Position + UDim2.fromOffset((WINDOW_SIZE.X / 2 + PREVIEW_GAP) * scale, 0)
+
+			local character = lp.Character
+			local root = character and character:FindFirstChild("HumanoidRootPart")
+			local now = os.clock()
+			if now - lastScan > 0.5 then
+				lastScan = now
+				scan(character, root)
+				subtitle.Text = activeVisuals()
+			end
+			if not root then
+				return
+			end
+
+			local look = root.CFrame.LookVector
+			local reference = CFrame.new(root.Position) * CFrame.Angles(0, math.atan2(-look.X, -look.Z), 0)
+			for _, pair in ipairs(characterPairs) do
+				local source, copy = pair.source, pair.copy
+				if source.Parent then
+					copy.CFrame = reference:ToObjectSpace(source.CFrame)
+
+					copy.Transparency = source.Transparency
+					copy.Color = source.Color
+					copy.Material = source.Material
+					copy.Reflectance = source.Reflectance
+				end
+			end
+			for part, copy in pairs(effectCopies) do
+				if part.Parent then
+					copy.CFrame = reference:ToObjectSpace(part.CFrame)
+					copy.Transparency = part.Transparency
+					copy.Color = part.Color
+					copy.Material = part.Material
+					copy.Reflectance = part.Reflectance
+				end
+			end
+
+			viewCamera.CFrame = CFrame.Angles(0, yaw, 0) * CFrame.new(0, 0.6, 11.5)
+			viewCamera.CFrame = CFrame.lookAt(viewCamera.CFrame.Position, Vector3.new(0, 0.4, 0))
+		end)
+	end
+
+	do
+
+		local DECOR_W, DECOR_H = 183, 220
+		local DECOR_ROWS = [[
+	61,0,23,6,0,0,0,0,5,0,22,22,6,0,0,0,18,0,0,0,19,0,26,26,22,0,0,0,60,1,25,4,0,1,0,0,6,1,16,16,7,1,1,1,24,1,0,1,53,2,39,2,0,0,0,0,38,0,0,0,50,3,45,3,0,0,19,19,3,0,0,0,44,0,0,0,49,4,47,4,0,0,2,2,1,0,18,
+	18,4,2,1,2,46,0,0,0,47,5,51,2,0,0,0,0,50,0,13,13,45,6,55,2,0,0,0,0,54,0,0,0,44,7,57,2,0,1,0,1,56,2,1,2,41,8,62,2,0,0,0,0,61,0,0,0,40,9,64,2,0,0,0,0,63,1,0,1,39,10,67,2,0,1,0,1,66,0,0,0,36,11,71,3,0,0,
+	15,15,1,0,0,0,70,0,0,0,35,12,73,3,0,0,17,17,2,2,0,0,72,0,0,0,34,13,75,2,0,0,0,0,74,0,0,0,32,14,79,4,0,0,0,0,24,15,15,15,77,0,0,0,78,0,24,24,31,15,81,4,0,0,0,0,78,2,0,1,79,0,31,30,80,0,4,4,30,16,82,4,
+	0,0,0,0,79,3,0,1,80,0,20,20,81,0,2,2,29,17,83,3,0,0,0,0,51,15,15,15,82,0,0,0,27,18,86,3,0,0,0,0,44,15,15,15,85,0,0,0,26,19,87,4,0,0,28,28,1,0,0,0,46,19,19,19,86,1,1,1,25,20,89,5,0,0,0,0,1,0,30,29,2,2,
+	2,3,48,19,19,19,88,1,0,1,25,21,90,3,0,0,0,0,59,19,19,19,89,2,0,2,24,22,91,3,0,0,0,0,49,21,21,21,90,1,0,1,23,23,93,3,0,0,0,0,51,24,24,24,92,0,0,0,22,24,94,4,0,0,22,22,1,2,0,0,53,23,23,23,93,1,1,1,21,
+	25,95,5,0,0,5,5,1,0,27,28,2,2,0,0,55,23,23,23,94,1,1,2,20,26,96,3,0,0,6,6,57,22,22,22,95,2,2,2,20,27,97,3,0,0,9,9,58,24,24,24,96,2,1,2,19,28,99,4,0,0,34,32,2,2,0,0,60,24,24,24,98,2,0,2,19,29,99,3,0,0,
+	11,11,61,21,21,21,98,1,1,2,18,30,101,3,0,0,0,0,51,22,22,22,100,1,1,1,18,31,101,3,0,2,0,2,51,18,18,18,100,2,1,2,17,32,102,3,0,0,0,1,51,19,19,19,101,2,1,2,16,33,103,3,0,0,0,0,52,20,20,20,102,2,2,2,15,
+	34,105,3,0,0,0,0,53,20,20,20,104,2,1,2,15,35,106,3,0,0,0,0,51,19,19,19,105,0,0,0,14,36,107,3,0,0,0,0,52,17,17,17,106,2,0,2,14,37,107,3,0,0,0,0,53,18,18,18,106,2,1,2,14,38,108,3,0,1,1,1,87,17,17,17,
+	107,0,0,0,13,39,109,3,0,0,0,0,15,16,16,16,108,1,1,1,12,40,110,3,0,0,0,0,22,17,17,17,109,1,1,1,12,41,110,5,0,0,0,0,69,23,19,24,70,4,3,5,87,17,17,17,109,1,1,2,11,42,111,7,0,0,0,0,22,17,17,17,69,8,5,9,
+	70,67,58,67,72,3,1,4,87,16,16,16,110,1,1,2,11,43,111,8,0,0,0,0,66,19,19,19,69,5,5,5,70,30,22,31,71,87,78,88,72,25,19,26,73,5,5,5,110,2,2,2,11,44,112,8,0,0,0,0,21,17,17,17,69,7,7,7,70,30,23,31,71,86,
+	77,86,72,70,61,70,73,9,4,11,111,1,1,2,10,45,114,7,0,0,0,0,71,8,5,9,72,65,56,66,73,86,77,86,75,4,1,6,85,16,16,16,113,0,0,2,9,46,115,8,0,0,0,0,69,19,19,19,72,2,0,3,73,54,46,55,75,84,75,84,77,4,0,6,87,
+	23,23,23,114,1,0,1,8,47,117,8,0,0,6,6,73,7,7,7,74,21,15,22,75,83,74,83,77,85,76,85,79,6,2,8,89,20,20,20,116,0,0,0,8,48,118,8,0,0,8,8,71,6,5,7,74,18,12,19,75,90,81,90,78,86,77,85,80,5,3,5,88,20,20,20,
+	117,0,0,0,8,49,118,12,0,0,8,8,60,4,5,4,61,32,25,33,63,8,8,8,74,6,4,6,75,65,56,65,76,93,83,93,79,80,71,80,80,22,14,24,81,4,2,5,90,19,19,19,117,0,0,0,8,50,119,15,0,0,8,8,23,16,16,16,60,2,1,3,61,40,33,
+	41,62,48,40,49,63,3,3,3,64,19,19,19,73,20,20,20,74,3,2,4,76,98,89,98,80,75,67,76,81,18,12,20,82,5,4,6,89,21,21,21,118,0,7,7,8,51,119,14,0,0,8,8,60,6,3,7,61,56,46,57,62,45,37,46,63,3,2,3,64,21,21,21,
+	74,6,7,7,75,16,11,17,76,85,76,86,77,95,85,95,81,76,67,76,82,18,12,20,83,9,7,9,118,0,7,7,8,52,119,14,0,0,8,8,22,17,17,17,60,3,0,5,61,95,85,96,62,87,77,89,63,7,3,8,64,17,18,17,75,8,4,9,76,73,64,73,77,
+	95,85,95,82,76,67,76,83,20,13,22,84,10,10,10,118,0,7,7,8,53,119,18,0,0,8,8,22,16,16,16,51,4,5,4,53,46,37,47,54,3,3,3,59,8,8,9,60,30,22,31,61,102,91,102,62,99,88,99,63,5,2,6,67,17,17,17,75,3,2,4,77,98,
+	88,98,82,85,75,84,83,66,57,67,84,2,0,3,87,19,19,19,118,0,10,10,8,54,119,17,0,0,8,8,51,7,5,8,52,61,52,63,53,16,8,18,59,3,0,4,61,120,108,120,62,100,89,100,63,20,12,22,64,13,12,13,75,8,9,8,76,25,20,26,
+	77,87,78,88,80,94,84,94,83,81,72,81,85,2,0,3,92,20,20,20,118,0,10,10,8,55,119,19,0,0,8,8,50,9,9,9,51,13,8,15,52,69,58,70,53,8,4,9,56,7,7,7,59,15,10,17,60,84,74,84,62,126,113,126,64,6,5,7,67,20,20,20,
+	76,3,1,4,77,72,62,72,78,98,88,98,81,74,66,74,84,85,76,85,86,3,0,5,88,18,18,18,118,0,10,10,8,56,119,20,0,0,8,8,33,18,18,18,50,1,2,1,52,91,79,91,53,4,2,5,58,12,11,13,59,18,10,20,60,105,94,105,62,140,
+	125,139,63,56,47,57,64,5,4,5,65,21,21,21,76,10,9,11,78,84,75,84,79,95,85,95,81,46,41,46,82,92,82,92,85,85,76,85,87,6,4,7,118,0,10,10,8,57,119,20,0,0,9,9,32,19,19,19,50,5,0,6,51,98,88,98,52,82,71,82,
+	53,5,3,6,57,17,17,17,58,4,2,5,60,109,98,109,62,135,121,135,64,8,6,9,76,10,11,10,77,18,14,19,78,92,82,92,81,100,89,100,86,87,78,86,87,28,21,29,88,3,2,3,90,18,18,18,118,0,10,10,8,58,119,20,0,0,10,10,32,
+	21,21,21,49,8,5,9,51,113,102,113,52,90,79,91,53,9,6,9,58,8,3,9,60,120,108,120,62,132,118,132,63,121,108,121,64,22,16,23,65,15,15,15,77,14,11,15,79,97,87,97,86,80,71,80,87,67,59,68,88,11,4,12,89,7,7,8,
+	91,22,22,22,118,0,10,10,8,59,59,12,0,0,10,10,28,8,8,8,31,24,24,24,48,4,4,5,49,25,17,26,50,112,101,111,51,116,104,116,52,75,65,76,53,7,4,7,54,20,20,20,57,6,6,7,58,34,27,36,67,59,60,16,0,109,98,109,2,
+	134,120,134,4,120,107,120,5,21,15,22,6,15,15,15,12,9,10,8,13,15,11,15,14,53,43,53,15,7,5,7,18,3,3,4,20,98,88,98,28,82,73,82,29,68,60,69,30,10,5,12,31,7,7,7,59,0,10,12,8,60,59,9,0,0,11,11,48,15,11,17,
+	49,89,78,90,51,136,122,135,52,34,25,36,53,3,1,4,54,19,19,19,57,6,4,7,58,82,71,82,67,60,60,15,0,110,99,110,1,129,116,129,4,129,116,129,6,8,6,8,13,13,10,15,14,54,45,55,16,10,11,10,18,12,12,11,19,20,15,
+	21,20,90,78,90,21,94,83,93,29,84,74,84,30,68,59,69,31,11,7,12,59,0,12,12,8,61,59,10,0,0,12,12,46,20,21,20,47,8,5,8,49,114,103,114,51,140,125,140,52,35,28,37,53,8,8,8,56,11,11,11,57,14,9,16,58,93,83,
+	94,67,61,60,14,0,113,102,113,4,139,125,139,6,4,2,4,7,19,19,18,13,13,13,13,15,40,32,41,16,7,5,8,19,7,5,7,21,97,87,97,28,101,91,102,30,79,71,79,32,0,0,0,33,15,15,14,59,0,12,12,8,62,59,8,0,0,13,13,47,12,
+	5,12,48,102,89,100,51,139,124,139,52,36,29,37,53,11,12,11,56,0,1,1,58,111,100,111,67,62,60,17,0,120,107,120,4,137,123,136,5,89,77,89,6,8,6,8,13,8,8,8,15,75,66,76,16,10,7,11,19,7,7,7,20,36,30,37,21,
+	103,91,102,25,38,42,48,28,42,36,40,30,15,13,15,32,27,22,27,33,0,0,0,42,15,15,15,59,0,12,12,8,63,59,13,0,0,14,14,1,0,0,0,28,18,18,18,45,18,18,17,46,3,4,9,47,70,66,78,48,106,102,114,49,105,102,113,51,
